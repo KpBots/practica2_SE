@@ -1,8 +1,9 @@
-TOOLCHAIN=~/toolchain/gcc-arm-none-eabi-4_9-2014q4/bin
-PREFIX=$(TOOLCHAIN)/arm-none-eabi-
+#TOOLCHAIN=~/toolchain/gcc-arm-none-eabi-4_9-2014q4/bin
+#PREFIX=$(TOOLCHAIN)/arm-none-eabi-
+PREFIX=arm-none-eabi-
 
 ARCHFLAGS=-mthumb -mcpu=cortex-m0plus
-CFLAGS=-I./includes/ -g -O2 -Wall -Werror
+CFLAGS=-I./includes -g -O2 -Wall -Werror
 LDFLAGS=--specs=nano.specs -Wl,--gc-sections,-Map,$(TARGET).map,-Tlink.ld
 
 CC=$(PREFIX)gcc
