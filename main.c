@@ -4,15 +4,6 @@
 #define LED_RED_POS (29)
 #define SW1_POS (3)
 
-#define MASK(x) (1UL << (x))
-
-
-void delay(void)
-{
-	volatile int i;
-
-	for (i = 0; i < 1000000; i++);
-}
 
 void led_green_init()
 {
@@ -52,7 +43,7 @@ void sw1_init()
 	PORTC->PCR[SW1_POS] |= PORT_PCR_PS_MASK;// Pull select, selecciona el modo de funcionamiento pullup/pulldown
 }
 
-long int sw1_pressed()
+unsigned long int sw1_pressed()
 {
 	return GPIOC->PDIR;
 }
@@ -69,9 +60,9 @@ int main(void)
 		if(!(sw1_pressed())){
 			led_red_toggle();
 			led_green_toggle();
-			delay();
+			while(!sw1_pressed())
+				continue;
 		}
 	}
 	return 0;
 }
-
