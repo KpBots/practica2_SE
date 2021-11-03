@@ -52,7 +52,7 @@ void sw1_init()
 	PORTC->PCR[SW1_POS] |= PORT_PCR_PS_MASK;// Pull select, selecciona el modo de funcionamiento pullup/pulldown
 }
 
-long int sw1_pressed()
+unsigned long int sw1_pressed()
 {
 	return GPIOC->PDIR;
 }
@@ -69,9 +69,9 @@ int main(void)
 		if(!(sw1_pressed())){
 			led_red_toggle();
 			led_green_toggle();
-			delay();
+			while(!sw1_pressed())
+				continue;
 		}
 	}
 	return 0;
 }
-
