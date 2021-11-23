@@ -7,7 +7,7 @@
 
 int STATUS_SW1 = 0;
 int STATUS_SW2 = 0;
-int SYSTEM_STATUS = -1;
+int SYSTEM_STATUS = 0;
 
 
 // Led's
@@ -116,7 +116,7 @@ int main(void)
 		 * 10 = 2 Puerta 1 abierta
 		 * 11 = 3 Ambas puertas están abiertas
 		 */
-		switch(system_status) {
+		switch(SYSTEM_STATUS) {
 			case 0:
 				led_green_on();
 				led_red_off();
