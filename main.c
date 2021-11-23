@@ -5,6 +5,10 @@
 #define SW1_POS (3)
 #define SW2_POS (12)
 
+int STATUS_SW1 = 0;
+int STATUS_SW2 = 0;
+int SYSTEM_STATUS = -1;
+
 
 // Led's
 void led_green_init()
@@ -16,23 +20,16 @@ void led_green_init()
 	GPIOD->PSOR |= (1 << LED_GREEN_POS);			// Se pone a 1 el pin de salida
 }
 
-void led_green_toggle()
-{
-	GPIOD->PTOR |= (1 << LED_GREEN_POS);
-}
-
 void led_green_on(void)
 {
 	GPIOD->PCOR |= (1 << LED_GREEN_POS);
 }
 
-void led_green_off(void)
-{
+void led_green_off(void) {
 	GPIOD->PSOR |= (1 << LED_GREEN_POS);
 }
 
-void led_red_init()
-{
+void led_red_init() {
 	SIM->COPC = 0;
 	SIM->SCGC5 |= SIM_SCGC5_PORTE_MASK;
 	PORTE->PCR[LED_RED_POS] = PORT_PCR_MUX(1);
@@ -40,83 +37,77 @@ void led_red_init()
 	GPIOE->PSOR |= (1 << LED_RED_POS);
 }
 
-void led_red_toggle(void)
-{
-	GPIOE->PTOR |= (1 << LED_RED_POS);
-}
-
-void led_red_on(void)
-{
+void led_red_on(void) {
 	GPIOE->PCOR |= (1 << LED_RED_POS);
 }
 
-void led_red_off(void)
-{
+void led_red_off(void) {
 	GPIOE->PSOR |= (1 << LED_RED_POS);
 }
 
+
 // Switches
-void sw1_init()
-{
+void sw1_init() {
 	SIM->COPC = 0;							// Desactiva el Watchdog
 	SIM->SCGC5 |= SIM_SCGC5_PORTC_MASK;		// Conecta el reloj al puerto C
 
 	PORTC->PCR[SW1_POS] |= PORT_PCR_MUX(1);	// Activa el GPIO
 	PORTC->PCR[SW1_POS] |= PORT_PCR_PE_MASK;// Pull enable, habilita la resistencia interna
 	PORTC->PCR[SW1_POS] |= PORT_PCR_PS_MASK;// Pull select, selecciona el modo de funcionamiento pullup/pulldown
+
+	// IRQ
+	PORTC->PCR[SW1_POS] |= PORT_PCR_IRQC(0xA); // IRQ en el flanco de bajada
+	NVIC_SetPriority(31, 0);	// Prioridad de la interrupcion 31
+	NVIC_EnableIRQ(31);			// Activa la interrupcion
 }
 
-void sw2_init()
-{
+void sw2_init() {
 	SIM->COPC = 0;							// Desactiva el Watchdog
 	SIM->SCGC5 |= SIM_SCGC5_PORTC_MASK;		// Conecta el reloj al puerto C
 
 	PORTC->PCR[SW2_POS] |= PORT_PCR_MUX(1);	// Activa el GPIO
 	PORTC->PCR[SW2_POS] |= PORT_PCR_PE_MASK;// Pull enable, habilita la resistencia interna
 	PORTC->PCR[SW2_POS] |= PORT_PCR_PS_MASK;// Pull select, selecciona el modo de funcionamiento pullup/pulldown
+
+	// IRQ
+	PORTC->PCR[SW2_POS] |= PORT_PCR_IRQC(0xA); // IRQ en el flanco de bajada
+	NVIC_SetPriority(31, 0);	// Prioridad de la interrupcion 31
+	NVIC_EnableIRQ(31);			// Activa la interrupcion
 }
 
-int sw1_pressed()
-{
-	return GPIOC->PDIR == (1<<SW2_POS);
+void PORTDIntHandler(void) {
+	int pressed_switch = PORTC->ISFR;
+	PORTC->ISFR = 0xFFFFFFFF;	// Clear IRQ
+
+  	// SW1
+	if(pressed_switch == (0x8)) {
+		STATUS_SW1 += 1;
+		if(STATUS_SW1 > 1) {
+			STATUS_SW1 = 0;
+		}
+	}
+
+	// SW2
+	if(pressed_switch == (0x1000)) {
+		STATUS_SW2 += 1;
+		if(STATUS_SW2 > 1) {
+			STATUS_SW2 = 0;
+		}
+	}
+
+	SYSTEM_STATUS = STATUS_SW1 + (STATUS_SW2 * 2);
 }
 
-int sw2_pressed()
-{
-	return GPIOC->PDIR == (1<<SW1_POS);
-}
 
 // Main
 int main(void)
 {
-	int status_sw1, status_sw2, system_status;
 	led_green_init();
 	led_red_init();
 	sw1_init();
 	sw2_init();
 
-	status_sw1 = 0;
-	status_sw2 = 0;
-	system_status = 0;
-
 	while(1) {
-		if(sw1_pressed()){
-			status_sw1 += 1;
-			while(sw1_pressed())
-				continue;
-		}
-		if(status_sw1 > 1)
-			status_sw1 = 0;
-
-		if(sw2_pressed()){
-			status_sw2 += 1;
-			while(sw2_pressed())
-				continue;
-		}
-		if(status_sw2 > 1)
-			status_sw2 = 0;
-
-
 		/* System status
 		 *
 		 * Switch 1, switch 2, estado
@@ -125,8 +116,6 @@ int main(void)
 		 * 10 = 2 Puerta 1 abierta
 		 * 11 = 3 Ambas puertas están abiertas
 		 */
-	 	system_status = status_sw1 + (status_sw2 * 2);
-		
 		switch(system_status) {
 			case 0:
 				led_green_on();
