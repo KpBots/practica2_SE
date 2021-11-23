@@ -9,8 +9,10 @@ int STATUS_SW1 = 0;
 int STATUS_SW2 = 0;
 int SYSTEM_STATUS = -1;
 
+
 // Led's
-void led_green_init() {
+void led_green_init()
+{
 	SIM->COPC = 0;									// Desactiva el Watchdog
 	SIM->SCGC5 |= SIM_SCGC5_PORTD_MASK;				// Conecta el reloj al puerto D
 	PORTD->PCR[LED_GREEN_POS] = PORT_PCR_MUX(1);	// Configura los pines necesarios como GPIO
@@ -18,7 +20,8 @@ void led_green_init() {
 	GPIOD->PSOR |= (1 << LED_GREEN_POS);			// Se pone a 1 el pin de salida
 }
 
-void led_green_on(void) {
+void led_green_on(void)
+{
 	GPIOD->PCOR |= (1 << LED_GREEN_POS);
 }
 
@@ -97,7 +100,8 @@ void PORTDIntHandler(void) {
 
 
 // Main
-int main(void) {
+int main(void)
+{
 	led_green_init();
 	led_red_init();
 	sw1_init();
@@ -112,7 +116,7 @@ int main(void) {
 		 * 10 = 2 Puerta 1 abierta
 		 * 11 = 3 Ambas puertas están abiertas
 		 */
-		switch(SYSTEM_STATUS) {
+		switch(system_status) {
 			case 0:
 				led_green_on();
 				led_red_off();
