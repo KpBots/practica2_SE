@@ -3,8 +3,11 @@
 PREFIX=arm-none-eabi-
 
 ARCHFLAGS=-mthumb -mcpu=cortex-m0plus
-CFLAGS=-I./includes -g3 -O0 -Wall -Werror
-LDFLAGS=--specs=nano.specs -Wl,--gc-sections,-Map,$(TARGET).map,-Tlink.ld
+COMMONFLAGS=-g3 -Og -Wall -Werror $(ARCHFLAGS)
+
+CFLAGS=-I./includes $(COMMONFLAGS)
+LDFLAGS=$(COMMONFLAGS) --specs=nano.specs -Wl,--gc-sections,-Map,$(TARGET).map,-Tlink.ld
+LDLIBS=
 
 CC=$(PREFIX)gcc
 LD=$(PREFIX)gcc
@@ -26,11 +29,8 @@ bin: $(TARGET).bin
 clean:
 	$(RM) $(TARGET).srec $(TARGET).elf $(TARGET).bin $(TARGET).map $(OBJ)
 
-%.o: %.c
-	$(CC) -c $(ARCHFLAGS) $(CFLAGS) -o $@ $<
-
 $(TARGET).elf: $(OBJ)
-	$(LD) $(LDFLAGS) -o $@ $(OBJ)
+	$(LD) $(LDFLAGS) $(OBJ) $(LDLIBS) -o $@
 
 %.srec: %.elf
 	$(OBJCOPY) -O srec $< $@
@@ -40,3 +40,6 @@ $(TARGET).elf: $(OBJ)
 
 size:
 	$(SIZE) $(TARGET).elf
+
+flash: all
+	openocd -f openocd.cfg -c "program main.elf verify reset exit"

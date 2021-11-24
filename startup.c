@@ -83,7 +83,7 @@ static void DefaultIntHandler(void);
 //*****************************************************************************
 __attribute__ ((section(".isr_vector")))
 void (* const g_pfnVectors[])(void) =
-{
+  {
     (void *)&_start_of_stack,
     ResetHandler,                           // The reset handler
     NMIIntHandler,                          // The NMI handler
@@ -130,7 +130,7 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     PORTAIntHandler,                        // PORTA handler
     PORTDIntHandler,                        // PORTC/PORTD handler
-};
+  };
 
 //*****************************************************************************
 //! \brief This is the code that gets called when the processor first
@@ -145,23 +145,23 @@ void (* const g_pfnVectors[])(void) =
 //*****************************************************************************
 void Default_ResetHandler(void)
 {
-    unsigned long *pulSrc, *pulDest;
+  unsigned long *pulSrc, *pulDest;
 
-    /* copy the data segment initializers from flash to SRAM */
-    pulSrc = &_sidata;
-    for(pulDest = &_sdata; pulDest < &_edata; )
+  /* copy the data segment initializers from flash to SRAM */
+  pulSrc = &_sidata;
+  for(pulDest = &_sdata; pulDest < &_edata; )
     {
-        *(pulDest++) = *(pulSrc++);
+      *(pulDest++) = *(pulSrc++);
     }
 
-    /* zero fill the bss segment */
-    for(pulDest = &_sbss; pulDest < &_ebss; )
+  /* zero fill the bss segment */
+  for(pulDest = &_sbss; pulDest < &_ebss; )
     {
-        *(pulDest++) = 0;
+      *(pulDest++) = 0;
     }
 
-    /* call the application's entry point */
-    main();
+  /* call the application's entry point */
+  main();
 }
 
 //*****************************************************************************
@@ -222,6 +222,6 @@ void Default_ResetHandler(void)
 //*****************************************************************************
 static void DefaultIntHandler(void)
 {
-	for(;;);
+  for(;;);
 }
 
