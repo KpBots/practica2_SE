@@ -9,8 +9,8 @@
 int STATUS_SW1 = 0;
 int STATUS_SW2 = 0;
 int SYSTEM_STATUS = 0;
-int HITS = 0;
-int MISSES = 0;
+int DOTS = 0;
+int DASHES = 0;
 
 // LED (RG)
 // LED_GREEN = PTD5 (pin 98)
@@ -133,47 +133,69 @@ int main(void)
   lcd_ini();
   lcd_display_time(00, 00);
 
-  // 'Random' sequence :-)
-  volatile unsigned int sequence = 0x32B14D98,
-    index = 0;
-    while (index < 32) {
-      if (sequence & (1 << index)) { //odd
-        led_green_on();
-        led_red_off();
-        // Bloqued until any button are pushed
-        while(!SYSTEM_STATUS);
-        // Update
-        if(STATUS_SW1) {
-          ++HITS;
-        } else if(STATUS_SW2) {
-          ++MISSES;
-        }
-      } else { //even
-        led_green_off();
-        led_red_on();
-        // Bloqued until any button are pushed
-        while(!SYSTEM_STATUS);
-        // Update
-        if(STATUS_SW2) {
-          ++HITS;
-        } else if(STATUS_SW1) {
-          ++MISSES;
-        }
+  led_green_off();
+  led_red_off();
+
+  volatile unsigned int result = 0;
+  while (result != 505) {
+    // Bloqued until any button are pushed
+    while(!SYSTEM_STATUS);
+    // Update
+    if(STATUS_SW1) {
+      led_green_on();
+      delay();
+      led_green_off();
+      ++DOTS;
+    } else if(STATUS_SW2) {
+      led_green_on();
+      delay();
+      delay();
+      delay();
+      led_green_off();
+      ++DASHES;
+    }
+
+    // S
+    if (DOTS == 3 && DASHES == 0) {
+      if(!result) {
+        result += 5;
+      } else if(result == 50) {
+        result *= 10.1;
+      } else {
+        result = 0;
       }
-      // Update LCD
-      lcd_display_time(HITS, MISSES);
-      // Update system values
-      ++index;
-      STATUS_SW1 = 0;
-      STATUS_SW2 = 0;
-      SYSTEM_STATUS = 0;
+      DOTS = 0;
+    }
+
+    // O
+    if (DASHES == 3 && DOTS == 0) {
+      if(result == 5) {
+        result *= 10;
+      } else {
+        result = 0;
+      }
+      DASHES = 0;
+    }
+
+    if (DOTS > 5 || DASHES > 5){
+      DOTS = 0;
+      DASHES = 0;
+      result = 0;
+    }
+
+    // Update LCD
+    lcd_display_dec(result);
+    // Update system values
+    STATUS_SW1 = 0;
+    STATUS_SW2 = 0;
+    SYSTEM_STATUS = 0;
   }
 
   // Stop game and show blinking final result in LCD: hits:misses
   while (1) {
     LCD->AR |= LCD_AR_BLINK(1);
     LCD->AR |= LCD_AR_BRATE(0xBB);
-    lcd_display_time(HITS, MISSES);
+    lcd_display_dec(result);
   }
 
   return 0;
