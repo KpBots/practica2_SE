@@ -6,6 +6,8 @@
 #define SW1_POS (3)
 #define SW2_POS (12)
 
+int CORE_CLOCK = 48000000;
+int MS = 0;
 int STATUS_SW1 = 0;
 int STATUS_SW2 = 0;
 int SYSTEM_STATUS = 0;
@@ -184,7 +186,7 @@ int main(void)
     }
 
     // Update LCD
-    lcd_display_dec(result);
+    lcd_display_n_dec(result);
     // Update system values
     STATUS_SW1 = 0;
     STATUS_SW2 = 0;
@@ -195,7 +197,7 @@ int main(void)
   while (1) {
     LCD->AR |= LCD_AR_BLINK(1);
     LCD->AR |= LCD_AR_BRATE(0xBB);
-    lcd_display_dec(result);
+    lcd_display_n_dec(result);
   }
 
   return 0;

@@ -312,6 +312,11 @@ void lcd_set(uint8_t value, uint8_t digit)
     LCD->WF8B[LCD_Frontplane_Pin[(2*digit)-1]] = LCD_SEG_A;
     break;
 
+  case 0x99:
+    LCD->WF8B[LCD_Frontplane_Pin[(2*digit)-2]] = LCD_CLEAR;
+    LCD->WF8B[LCD_Frontplane_Pin[(2*digit)-1]] = LCD_CLEAR;
+    break;
+
   default:
     //Display "Err"
     lcd_display_error(0x01);
@@ -331,6 +336,38 @@ void lcd_display_dec(uint16_t value)
     lcd_set(value/1000, 1);
     lcd_set((value - (value/1000)*1000)/100, 2);
     lcd_set((value - (value/100)*100)/10, 3);
+    lcd_set(value - (value/10)*10, 4);
+  }
+}
+
+
+//
+// Displays a n Digit number in decimal
+//
+void lcd_display_n_dec(uint16_t value)
+{
+  if (value > 9999) {
+    //Display "Err" if value is greater than 4 digits
+    lcd_display_error(0x10);
+  } else if (value > 999) {
+    lcd_set(value/1000, 1);
+    lcd_set((value - (value/1000)*1000)/100, 2);
+    lcd_set((value - (value/100)*100)/10, 3);
+    lcd_set(value - (value/10)*10, 4);
+  } else if (value > 99) {
+    lcd_set(0x99, 1);
+    lcd_set((value - (value/1000)*1000)/100, 2);
+    lcd_set((value - (value/100)*100)/10, 3);
+    lcd_set(value - (value/10)*10, 4);
+  } else if (value > 9) {
+    lcd_set(0x99, 1);
+    lcd_set(0x99, 2);
+    lcd_set((value - (value/100)*100)/10, 3);
+    lcd_set(value - (value/10)*10, 4);
+  } else {
+    lcd_set(0x99, 1);
+    lcd_set(0x99, 2);
+    lcd_set(0x99, 3);
     lcd_set(value - (value/10)*10, 4);
   }
 }
