@@ -208,6 +208,9 @@ int main(void)
     STATUS_SW2 = 0;
     SYSTEM_STATUS = 0;
 
+    if(result == 505)
+      break;
+
     elapsed_time = delay(DURATION_LONG * 2, WAITING);
 
     // Waiting too long
